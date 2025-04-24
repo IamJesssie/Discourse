@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Confirm Revert</h1>
+<p>Revert to version from {{ history.edited_at }}?</p>
+<pre class="historical-content">{{ history.old_content|safe }}</pre>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="danger">Confirm Revert</button>
+  <a href="{{ history.post.get_absolute_url }}" class="button">Cancel</a>
+</form>
+{% endblock %}

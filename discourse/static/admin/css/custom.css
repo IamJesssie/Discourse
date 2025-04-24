@@ -1,0 +1,29 @@
+/* TCD Baltazar Admin Styles */
+#content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.module h2, .module caption {
+    background: #4f46e5;
+    color: white;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.object-tools a:link, .object-tools a:visited {
+    background: #10b981;
+    color: white !important;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.form-row {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.selector-changelist {
+    width: 100%;
+}

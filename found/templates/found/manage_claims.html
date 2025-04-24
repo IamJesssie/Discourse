@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div class="module">
+    <h1>Pending Claims</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Claimant</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for claim in claims %}
+            <tr>
+                <td>{{ claim.item.title }}</td>
+                <td>{{ claim.claimant.username }}</td>
+                <td>{{ claim.claim_date }}</td>
+                <td>
+                    <a href="{% url 'found:process_claim' claim.pk %}">Review</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No pending claims</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

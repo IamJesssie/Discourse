@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div class="module">
+    <h1>Process Claim: {{ claim.item.title }}</h1>
+    <div class="form-row">
+        <label>Claimant:</label>
+        <p>{{ claim.claimant.username }}</p>
+    </div>
+    <div class="form-row">
+        <label>Submitted:</label>
+        <p>{{ claim.claim_date }}</p>
+    </div>
+    {% if document_url %}
+    <div class="form-row">
+        <label>Verification Document:</label>
+        <a href="{{ document_url }}" target="_blank">View Document</a>
+    </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="submit-row">
+            <button type="submit" name="decision" value="approve" class="button">Approve</button>
+            <button type="submit" name="decision" value="reject" class="button">Reject</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

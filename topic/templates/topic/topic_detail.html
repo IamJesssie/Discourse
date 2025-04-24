@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<article>
+    <h1>{{ topic.title }}</h1>
+    <div class="meta">
+        Posted by {{ topic.author }} in {{ topic.category }} • {{ topic.created_at }}
+        {% if topic.modified_at %}
+        (Last modified: {{ topic.modified_at }})
+        {% endif %}
+    </div>
+    <div class="content">
+        {{ topic.content|safe }}
+    </div>
+    
+    <h2>Posts</h2>
+    {% for post in topic.posts.all %}
+    <div class="post">
+        <div class="post-meta">
+            By {{ post.author }} • {{ post.created_at }}
+            {% if post.modified_at %}
+            (Edited: {{ post.modified_at }} by {{ post.edited_by }})
+            {% endif %}
+        </div>
+        <div class="post-content">
+            {{ post.content|safe }}
+        </div>
+    </div>
+    {% endfor %}
+</article>
+{% endblock %}

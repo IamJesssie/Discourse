@@ -4,7 +4,7 @@
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Edit Post</h1>
     
-    <form method="post" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
         
         <div class="space-y-4">
@@ -16,6 +16,41 @@
                 {% endif %}
             </div>
             
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="text-lg font-medium text-gray-700 mb-3">Content Formatting Tools</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Image Upload Section -->
+                    <div class="p-3 bg-white rounded border border-gray-200">
+                        <h4 class="font-medium mb-2">Add Image</h4>
+                        <div class="mb-2">
+                            <label class="block text-sm text-gray-600">Upload image:</label>
+                            {{ form.image }}
+                        </div>
+                        <div class="text-xs text-gray-500">{{ form.image.help_text }}</div>
+                    </div>
+                    
+                    <!-- Link Embedding Section -->
+                    <div class="p-3 bg-white rounded border border-gray-200">
+                        <h4 class="font-medium mb-2">Add Link</h4>
+                        <div class="flex space-x-2">
+                            <input type="text" id="link_url" placeholder="https://example.com" 
+                                   class="flex-1 px-2 py-1 border rounded">
+                            <input type="text" id="link_text" placeholder="Link text" 
+                                   class="flex-1 px-2 py-1 border rounded">
+                            <button type="button" id="add_link_btn" 
+                                    class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3 text-xs text-gray-600">
+                    <p>You can add text, images, and links to your post. HTML formatting is supported.</p>
+                </div>
+            </div>
+            
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Edit Reason</label>
                 {{ form.edit_reason }}
@@ -24,7 +59,7 @@
 
         <div class="preview mt-8 p-4 bg-gray-50 rounded-lg">
             <h3 class="text-lg font-medium text-gray-700 mb-2">Content Preview</h3>
-            <div class="preview-content prose max-w-none">
+            <div class="preview-content prose max-w-none border p-4 bg-white rounded">
                 {{ preview_content|safe }}
             </div>
         </div>
@@ -41,4 +76,42 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Link insertion functionality
+    document.getElementById('add_link_btn').addEventListener('click', function() {
+        const linkUrl = document.getElementById('link_url').value.trim();
+        const linkText = document.getElementById('link_text').value.trim() || linkUrl;
+        
+        if (linkUrl) {
+            const linkHtml = `<a href="${linkUrl}" target="_blank">${linkText}</a>`;
+            const contentField = document.querySelector('{{ form.content.auto_id }}');
+            
+            // Insert at cursor position or append to end
+            if (contentField.selectionStart || contentField.selectionStart === 0) {
+                const startPos = contentField.selectionStart;
+                const endPos = contentField.selectionEnd;
+                
+                contentField.value = contentField.value.substring(0, startPos) 
+                    + linkHtml 
+                    + contentField.value.substring(endPos);
+                    
+                contentField.selectionStart = startPos + linkHtml.length;
+                contentField.selectionEnd = startPos + linkHtml.length;
+            } else {
+                contentField.value += linkHtml;
+            }
+            
+            contentField.focus();
+            
+            // Clear input fields
+            document.getElementById('link_url').value = '';
+            document.getElementById('link_text').value = '';
+        }
+    });
+    
+    // Real-time preview functionality could be added here
+});
+</script>
 {% endblock %}

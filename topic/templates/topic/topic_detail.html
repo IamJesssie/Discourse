@@ -1,30 +1,193 @@
 {% extends "base.html" %}
 {% block content %}
-<article>
-    <h1>{{ topic.title }}</h1>
-    <div class="meta">
+<article class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <div class="flex justify-between items-center mb-2">
+        <h1 class="text-3xl font-bold text-gray-800">{{ topic.title }}</h1>
+        <a href="{% url 'topic:create_topic' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create New Topic</a>
+    </div>
+    <div class="meta text-sm text-gray-600 mb-6 pb-2 border-b border-gray-200">
         Posted by {{ topic.author }} in {{ topic.category }} • {{ topic.created_at }}
         {% if topic.modified_at %}
         (Last modified: {{ topic.modified_at }})
         {% endif %}
     </div>
-    <div class="content">
+    <div class="content prose max-w-none mb-8">
         {{ topic.content|safe }}
     </div>
     
-    <h2>Posts</h2>
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Posts</h2>
     {% for post in topic.posts.all %}
-    <div class="post">
-        <div class="post-meta">
-            By {{ post.author }} • {{ post.created_at }}
-            {% if post.modified_at %}
-            (Edited: {{ post.modified_at }} by {{ post.edited_by }})
-            {% endif %}
+    <div class="post bg-gray-50 p-6 mb-4 rounded-lg">
+        <div class="post-meta flex justify-between items-start mb-3 pb-2 border-b border-gray-200">
+            <div>
+                <span class="font-medium">{{ post.author }}</span> • 
+                <span class="text-sm text-gray-600">{{ post.created_at }}</span>
+                {% if post.modified_at %}
+                <span class="text-sm text-gray-500">(Edited: {{ post.modified_at }} by {{ post.edited_by }})</span>
+                {% endif %}
+            </div>
+            <div class="flex space-x-2">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'post:post_history' post.id %}" 
+                       class="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300">
+                        History
+                    </a>
+                    {% if post.author == user and post.id in editable_posts %}
+                        <a href="{% url 'post:edit_post' post.id %}" 
+                           class="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 edit-btn-{{ post.id }}">
+                            Edit
+                        </a>
+                        <span class="ml-2 text-xs text-green-700 edit-status-{{ post.id }}">
+                            (Editable: within time window)
+                        </span>
+                        <!-- Add data attributes for JavaScript to access -->
+                        <span class="hidden" 
+                              id="post-data-{{ post.id }}" 
+                              data-created="{{ post.created_at|date:'c' }}" 
+                              data-modified="{% if post.modified_at %}{{ post.modified_at|date:'c' }}{% else %}{{ post.created_at|date:'c' }}{% endif %}">
+                        </span>
+                    {% elif post.author == user %}
+                        <span class="ml-2 text-xs text-red-600">(Not editable: edit window expired or no permission)</span>
+                    {% endif %}
+                {% endif %}
+            </div>
         </div>
         <div class="post-content">
             {{ post.content|safe }}
         </div>
     </div>
     {% endfor %}
+
+    {% if user.is_authenticated and not topic.is_locked %}
+    <div class="mt-10">
+        <h3 class="text-xl font-semibold mb-2">Add a Reply</h3>
+        <form method="post" action="{% url 'post:create_post' topic.id %}" class="space-y-4" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Your Reply</label>
+                <textarea name="content" id="reply-content" rows="4" class="w-full px-3 py-2 border rounded-lg" placeholder="Write your reply...">{{ request.POST.content }}</textarea>
+                {% if form and form.errors.content %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.errors.content.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Content Formatting Tools -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Formatting Tools</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Image Upload Section -->
+                    <div class="p-3 bg-white rounded border border-gray-200">
+                        <h4 class="font-medium text-sm mb-2">Add Image</h4>
+                        <div class="mb-2">
+                            <label class="block text-xs text-gray-600">Upload image:</label>
+                            <input type="file" name="image" id="reply-image" class="block w-full text-xs text-gray-500 mt-1">
+                        </div>
+                        <div class="text-xs text-gray-500">Supported formats: JPG, PNG, GIF</div>
+                    </div>
+                    
+                    <!-- Link Embedding Section -->
+                    <div class="p-3 bg-white rounded border border-gray-200">
+                        <h4 class="font-medium text-sm mb-2">Add Link</h4>
+                        <div class="flex space-x-2">
+                            <input type="text" id="reply-link-url" placeholder="https://example.com" 
+                                   class="flex-1 px-2 py-1 border rounded text-sm">
+                            <input type="text" id="reply-link-text" placeholder="Link text" 
+                                   class="flex-1 px-2 py-1 border rounded text-sm">
+                            <button type="button" id="reply-add-link-btn" 
+                                    class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Post Reply</button>
+        </form>
+    </div>
+
+    <!-- JavaScript for content formatting tools -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Link insertion functionality
+        document.getElementById('reply-add-link-btn').addEventListener('click', function() {
+            const linkUrl = document.getElementById('reply-link-url').value.trim();
+            const linkText = document.getElementById('reply-link-text').value.trim() || linkUrl;
+            
+            if (linkUrl) {
+                const linkHtml = `<a href="${linkUrl}" target="_blank">${linkText}</a>`;
+                const contentField = document.getElementById('reply-content');
+                
+                // Insert at cursor position or append to end
+                if (contentField.selectionStart || contentField.selectionStart === 0) {
+                    const startPos = contentField.selectionStart;
+                    const endPos = contentField.selectionEnd;
+                    
+                    contentField.value = contentField.value.substring(0, startPos) 
+                        + linkHtml 
+                        + contentField.value.substring(endPos);
+                        
+                    contentField.selectionStart = startPos + linkHtml.length;
+                    contentField.selectionEnd = startPos + linkHtml.length;
+                } else {
+                    contentField.value += linkHtml;
+                }
+                
+                contentField.focus();
+                
+                // Clear input fields
+                document.getElementById('reply-link-url').value = '';
+                document.getElementById('reply-link-text').value = '';
+            }
+        });
+    });
+    </script>
+    {% elif topic.is_locked %}
+        <div class="mt-10 text-red-600 font-semibold">This topic is locked. Replies are not allowed.</div>
+    {% endif %}
 </article>
+
+<!-- Add JavaScript to handle the edit window timeout -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to check edit window and hide buttons if expired
+    function checkEditWindow() {
+        const now = new Date();
+        const editWindowMinutes = {{ POST_EDIT_WINDOW_MINUTES|default:2 }};
+        
+        // Find all posts with data attributes
+        document.querySelectorAll('[id^="post-data-"]').forEach(function(elem) {
+            const postId = elem.id.split('-').pop();
+            const lastEditTime = new Date(elem.dataset.modified);
+            
+            // Calculate cutoff time (last edit + edit window)
+            const cutoffTime = new Date(lastEditTime.getTime() + (editWindowMinutes * 60 * 1000));
+            
+            // Check if edit window has expired
+            if (now > cutoffTime) {
+                // Hide edit button and change status message
+                const editBtn = document.querySelector(`.edit-btn-${postId}`);
+                const editStatus = document.querySelector(`.edit-status-${postId}`);
+                
+                if (editBtn) {
+                    editBtn.style.display = 'none';
+                }
+                
+                if (editStatus) {
+                    editStatus.textContent = '(Not editable: edit window expired)';
+                    editStatus.classList.remove('text-green-700');
+                    editStatus.classList.add('text-red-600');
+                }
+            }
+        });
+    }
+    
+    // Check immediately when page loads
+    checkEditWindow();
+    
+    // Then check every 10 seconds
+    setInterval(checkEditWindow, 10000);
+});
+</script>
 {% endblock %}

@@ -11,21 +11,44 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Post editing configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Global default edit window in minutes
+
+# Edit window configuration
+POST_EDIT_WINDOW_MINUTES = 2  # Default global edit window
 import os
-import os
-import os
-import os
-import os
-import os
-import os
-import os
-import os
-import os
-import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Flag to indicate if we're running tests
+TESTING = 'test' in sys.argv
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -136,13 +159,22 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (User uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Email configuration (development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Authentication settings
+LOGIN_REDIRECT_URL = '/topics/'
+LOGIN_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/topics/create/'  # Redirect to topic creation page after logout
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# FR-PE-005: Global post edit window (60 minutes default)
-POST_EDIT_WINDOW_MINUTES = 60
+# FR-PE-005: Global post edit window (2 minutes default)
+POST_EDIT_WINDOW_MINUTES = 2

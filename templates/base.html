@@ -16,7 +16,10 @@
                 <div class="flex items-center space-x-4">
                     {% if user.is_authenticated %}
                         <span class="text-gray-600">Welcome, {{ user.username }}</span>
-                        <a href="{% url 'admin:logout' %}" class="px-3 py-2 rounded-lg hover:bg-gray-100">Logout</a>
+                        <form method="post" action="{% url 'custom_logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="px-3 py-2 rounded-lg hover:bg-gray-100">Logout</button>
+                        </form>
                     {% else %}
                         <a href="{% url 'login' %}" class="px-3 py-2 rounded-lg hover:bg-gray-100">Login</a>
                     {% endif %}
@@ -24,6 +27,21 @@
             </div>
         </div>
     </nav>
+    
+    <!-- Add message display section -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mt-4">
+        {% for message in messages %}
+            <div class="p-4 mb-4 rounded-lg 
+                {% if message.tags == 'success' %}bg-green-100 text-green-800{% endif %}
+                {% if message.tags == 'error' %}bg-red-100 text-red-800{% endif %}
+                {% if message.tags == 'warning' %}bg-yellow-100 text-yellow-800{% endif %}
+                {% if message.tags == 'info' %}bg-blue-100 text-blue-800{% endif %}">
+                {{ message|safe }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     
     <main class="max-w-7xl mx-auto px-4 py-8">
         {% block content %}{% endblock %}

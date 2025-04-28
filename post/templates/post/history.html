@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Post Revision History</h1>
+        <a href="{{ post.topic.get_absolute_url }}" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Back to Topic
+        </a>
+    </div>
+    
+    <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h2 class="text-lg font-medium text-gray-700 mb-2">Current Version</h2>
+        <div class="text-sm text-gray-500 mb-3">
+            {% if post.modified_at %}
+                Last edited on {{ post.modified_at }} by {{ post.edited_by }}
+            {% else %}
+                Originally posted on {{ post.created_at }} by {{ post.author }}
+            {% endif %}
+        </div>
+        <div class="bg-white p-4 rounded border border-gray-200">
+            {{ post.content|safe }}
+        </div>
+    </div>
+    
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Previous Versions</h2>
+    
+    {% if history_entries %}
+        <div class="space-y-6">
+            {% for entry in history_entries %}
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="text-lg font-medium">Version from {{ entry.edited_at }}</div>
+                            <div class="text-sm text-gray-500">Edited by {{ entry.edited_by }}</div>
+                            {% if entry.edit_reason %}
+                                <div class="text-sm text-gray-600">Reason: {{ entry.edit_reason }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if can_revert %}
+                            <a href="{% url 'post:revert_post' entry.id %}" 
+                               class="px-3 py-1 bg-amber-600 text-white text-sm rounded hover:bg-amber-700">
+                                Revert to this version
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded border border-gray-200">
+                        {{ entry.old_content|safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-gray-500 italic p-4 bg-gray-50 rounded-lg border border-gray-200">
+            No revision history available for this post.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

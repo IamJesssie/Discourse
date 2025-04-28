@@ -14,15 +14,19 @@ class TopicCreationForm(forms.ModelForm):
     # FR-TC-008: Title validation
     def clean_title(self):
         title = self.cleaned_data['title']
+        if not title or not title.strip():
+            raise forms.ValidationError("Title is required, please fill out this field.")
         if len(title) < 15:
             raise forms.ValidationError("Title must be at least 15 characters long.")
         if len(title) > 255:
             raise forms.ValidationError("Title cannot exceed 255 characters.")
         return title
         
-    # FR-TC-010: Content sanitization
+    # FR-TC-010: Content sanitization and validation
     def clean_content(self):
-        content = self.cleaned_data['content']
+        content = self.cleaned_data.get('content', '')
+        if not content or not content.strip():
+            raise forms.ValidationError("Content is required.")
         # Basic XSS prevention
         content = content.replace('<script>', '<script>').replace('</script>', '</script>')
         return content
